@@ -1,0 +1,21 @@
+exclusion_keywords = [
+    'Payment From',
+    'Payroll',
+    'Deposit',
+    'College Savings', 
+    'Fid Bkg', 
+    'Vanguard',
+    'Tuition', 
+    'Rent', 
+    'Pl*Americancampu', 
+    'Pl*Paylease',
+    'Simplebills',
+    'Irs Treas',
+    'State of Ill',
+    'AT&T Services',
+    'Hisense',
+    'Deposit',
+    'Yieldstreet',
+    'Yldstreet',
+    '529 Dir ACH'
+]

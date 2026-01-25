@@ -1,0 +1,12 @@
+.env
+/pdf/**
+/backup/**
+/transactions/**
+/venv/**
+**/__pycache__/**
+.DS_Store
+/db/**
+*.pyc
+/year_total/**
+/.vscode
+/ExperimentCode/**
