@@ -151,6 +151,7 @@ prompt_template = """
             - must be enclosed in double quotes
         3. amount (float)
             - when amount is a string, you must convert it to float by removing any commas, dollar signs, and spaces.
+            - do NOT add negative sign even if the transaction is withdrawal.
 
     Context: {context}
 
@@ -177,20 +178,11 @@ system_prompt = """
             - ATM & DEBIT CARD WITHDRAWALS
             - ELECTRONIC WITHDRAWALS
             - OTHER WITHDRAWALS
+            - CHECKS PAID
         2. You must exclude transactions from the following categories:
             - DEPOSITS AND ADDITIONS
-        3. You must always include transactions that have any of the following words in the description, do NOT exclude any duplicate transactions:
-            - Zelle
-            - Payment To
-            - Purchase
-            - Bill
-            - City of Napervil
-            - Autopay
-            - Pymt
-            - Loan
-        4. For each transaction, you must include all description details, do not ignore any details in the description. 
-        5. For each transaction, you must analyze description and categorize it into predefined expense categories.
-        6. The transaction that has 'Cardmember' or 'Autopay' in the description must be categorized as 'Credit card payment'.
+        3. For each transaction, you must include all description details, do not ignore any details in the description. 
+        4. The amount must always be a positive number. Do NOT add a negative sign even if the transaction is a withdrawal.
 
     Analyze the following bank statement and extract all withdrawal transactions that match the rules above.
 """

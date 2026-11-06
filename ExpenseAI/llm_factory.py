@@ -1,6 +1,7 @@
 import os
 import instructor
 import boto3
+import anthropic
 
 from typing import Any, Dict, List, Type
 from  ExpenseAI.config.settings import get_settings
@@ -16,6 +17,7 @@ class LLMFactory:
     def _initialize_client(self) -> Any:
         client_initializers = {
             "openai": lambda s: instructor.from_openai(OpenAI(api_key=s.api_key)),
+            "claude": lambda s: instructor.from_anthropic(anthropic.Anthropic(api_key=s.api_key)),
             "bedrock": lambda s: instructor.from_bedrock(
                 boto3.client(region_name=os.environ["AWS_REGION"],
                         service_name='bedrock-runtime',
@@ -36,7 +38,7 @@ class LLMFactory:
         completion_params = {
             "model": kwargs.get("model", self.settings.default_model),
             "max_retries": kwargs.get("max_retries", self.settings.max_retries),
-            "temperature": kwargs.get("temperature", self.settings.temperature),
+            # "temperature": kwargs.get("temperature", self.settings.temperature),
             "response_model": response_model,
             "messages": messages,
         }

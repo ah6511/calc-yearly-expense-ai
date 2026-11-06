@@ -3,8 +3,9 @@ import asyncio
 
 from ExpenseAI.ExtractTransactionsAgent import ExtractTransactionsAgent
 from Utils.utils import save_to_s3, list_pdfs_in_s3, download_pdf_from_s3, list_pdfs_in_local_dir, save_to_local_dir
+from ExpenseAI.Models import Transaction, CategorizedTransaction
 
-async def calc_monthly_expense(pdf_path):
+async def calc_monthly_expense(pdf_path: str) -> tuple[float, list]:
     agent = ExtractTransactionsAgent()
     result = await asyncio.to_thread(agent.run, pdf_path)
     withdrawals_sum = result["transactions_sum"]    
@@ -13,7 +14,7 @@ async def calc_monthly_expense(pdf_path):
     print(f"Expense for month {month} is {withdrawals_sum}.")
     return withdrawals_sum, result["transactions"]
 
-async def calc_expenses(pdf_directory):
+async def calc_expenses(pdf_directory: str) -> tuple[float, list[CategorizedTransaction]]:
     tasks = []
     if os.getenv("LOCAL_MODE", "false").lower() == "true":
         for filename in os.listdir(pdf_directory):
@@ -34,8 +35,8 @@ async def calc_expenses(pdf_directory):
             print(f"Processing file: {filename}")
     
     results = await asyncio.gather(*tasks)
-    total_sum = sum(withdrawals_sum for withdrawals_sum, _ in results)
-    withdrawals = [tx for _, tx_list in results for tx in tx_list]
+    total_sum: float = sum(withdrawals_sum for withdrawals_sum, _ in results)
+    withdrawals: list[CategorizedTransaction] = [tx for _, tx_list in results for tx in tx_list]
     withdrawals.sort(key=lambda withdrawal: withdrawal["date"])
 
     print(f"The number of withdrawals for the year: {len(withdrawals)}")

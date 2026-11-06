@@ -2,11 +2,12 @@ import boto3
 import os
 from pypdf import PdfReader
 
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf(pdf_path: str) -> str:
     reader = PdfReader(pdf_path)
-    return "\n".join([reader.pages[i].extract_text() for i in range(0, len(reader.pages))])
+    pages = [reader.pages[i].extract_text() for i in range(len(reader.pages))]
+    return "\r\n--- Page Break ---\r\n".join(pages)
 
-def save_to_s3(text, prefix, object_name):
+def save_to_s3(text: str, prefix: str, object_name: str):
     try:
         s3_client = boto3.client('s3',
                                 region_name="us-east-1",
@@ -17,7 +18,7 @@ def save_to_s3(text, prefix, object_name):
     except Exception as e:
         print(f"Error putting object to S3: {e}")
 
-def list_pdfs_in_s3(prefix):
+def list_pdfs_in_s3(prefix: str):
     try:
         s3_client = boto3.client('s3',
                                 region_name="us-east-1",
@@ -30,7 +31,7 @@ def list_pdfs_in_s3(prefix):
         print(f"Error listing objects in S3: {e}")
         return []
 
-def upload_pdfs_to_s3(local_directory, s3_prefix):
+def upload_pdfs_to_s3(local_directory: str, s3_prefix: str):
     try:
         s3_client = boto3.client('s3',
                                 region_name="us-east-1",
@@ -45,7 +46,7 @@ def upload_pdfs_to_s3(local_directory, s3_prefix):
     except Exception as e:
         print(f"Error uploading PDFs to S3: {e}")
 
-def download_pdf_from_s3(s3_key, local_path):
+def download_pdf_from_s3(s3_key: str, local_path: str):
     try:
         s3_client = boto3.client('s3',
                                 region_name="us-east-1",
@@ -84,7 +85,7 @@ def list_pdfs_in_local_dir(root_dir='pdf', recursive=True):
     pdf_paths.sort()
     return pdf_paths
 
-def save_to_local_dir(text, dir_path, file_name, overwrite=True):
+def save_to_local_dir(text: str, dir_path: str, file_name: str, overwrite: bool = True) -> str:
     """Save `text` to a file named `file_name` under `dir_path`.
 
     Args:
@@ -113,15 +114,5 @@ def save_to_local_dir(text, dir_path, file_name, overwrite=True):
     return os.path.abspath(full_path)
 
 if __name__ == "__main__":
-    # pdf_path = "pdf/20240124-statements-8506-.pdf" # Replace with your actual file
-    # print(extract_text_from_pdf(pdf_path))
-    # text = """
-    #     {
-    #         "year_total": 10270.79
-    #     }    
-    #     """
-    # save_to_s3(text, "year_total", "2024.json")
-    # upload_pdfs_to_s3("pdf", "pdfs")
-    pdfs = list_pdfs_in_s3("pdfs")
-    print("pdfs", pdfs)
-    download_pdf_from_s3(pdfs[0], "/tmp/" + pdfs[0].split("/")[-1])
+    txt = extract_text_from_pdf("pdf" + "/" + "20250124-statements-8506-.pdf")
+    print(txt)
