@@ -13,7 +13,7 @@ class ExclusionReason(StrEnum):
     COLLEGE_SAVINGS = "college savings"
     INVESTMENT = "investment"
     RENT_PAYMENT = "rent payment"
-    TUITON_PAYMENT = "tuition payment"
+    TUITION_PAYMENT = "tuition payment"
     TAX_REFUND = "tax refund"
     DEPOSIT = "deposit"
     PI_PAYMENT = "pi payment"

@@ -1,6 +1,5 @@
 """Declarative criteria for transaction exclusion and categorization."""
 
-
 from expense_ai.models import ExclusionReason, ExpenseCategory
 
 EXCLUSION_INSTRUCTIONS = (
@@ -14,7 +13,7 @@ EXCLUSION_CRITERIA: dict[str, str] = {
     ExclusionReason.COLLEGE_SAVINGS.value: "Payment to or from College Savings 529 account",
     ExclusionReason.INVESTMENT.value: "Fidelity brokerage (Fid Bkg) or Vanguard investment",
     ExclusionReason.RENT_PAYMENT.value: "Rent or lease payment (college campus or landlord)",
-    ExclusionReason.TUITON_PAYMENT.value: ("College or university tuition payment"),
+    ExclusionReason.TUITION_PAYMENT.value: ("College or university tuition payment"),
     ExclusionReason.TAX_REFUND.value: "Tax refund transaction",
     ExclusionReason.DEPOSIT.value: "Deposit transaction",
     ExclusionReason.PI_PAYMENT.value: "Payment related to PI*",
