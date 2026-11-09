@@ -17,6 +17,7 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "pypdf>=5.0.0",
     "python-dotenv>=1.0.0",
+    "sentence-transformers>=6.2.0",
     "typesafe-sdk>=0.7.0",
 ]
 
