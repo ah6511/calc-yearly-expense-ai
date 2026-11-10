@@ -1,6 +1,6 @@
 # calc-yearly-expense-ai
 
-AI-powered pipeline that extracts withdrawal transactions from bank statement PDFs using structured LLM outputs (`instructor`), filters and categorizes transactions with TypeSafe AI (`typesafe-sdk`), and aggregates monthly and yearly expenses.
+AI-powered pipeline that extracts withdrawal transactions from bank statement PDFs using structured LLM outputs (`strands-agents`), filters and categorizes transactions with TypeSafe AI (`typesafe-sdk`), and aggregates monthly and yearly expenses.
 
 ## Project Layout
 
@@ -17,7 +17,7 @@ calc-yearly-expense-ai/
 │   │   └── extract_transactions.md # Versioned extraction system prompt
 │   ├── llm/
 │   │   ├── base.py                 # LLMClient protocol
-│   │   └── factory.py              # Instructor client for OpenAI, Claude, and Bedrock
+│   │   └── factory.py              # Strands Agents client for OpenAI, Claude, and Bedrock
 │   ├── classification/
 │   │   ├── criteria.py             # Declarative exclusion & category criteria
 │   │   └── typesafe_classifier.py  # Sync & bounded-concurrency async TypeSafe classifier
