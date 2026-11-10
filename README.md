@@ -29,10 +29,6 @@ calc-yearly-expense-ai/
 │   └── cli.py                      # CLI entrypoint (`expense-ai` or `python -m expense_ai`)
 ├── handlers/
 │   └── lambda_handler.py           # AWS Lambda handler (`handlers.lambda_handler.lambda_handler`)
-├── scripts/                        # Exploratory clustering scripts
-│   ├── ClassifyTransactions.py
-│   └── FindExpenseCategories.py
-├── backup/                         # Legacy reference scripts/notebooks
 └── tests/                          # Offline unit & pipeline integration tests
 ```
 
@@ -45,6 +41,11 @@ uv sync
 cp .env.example .env
 # Edit .env with your API keys
 ```
+
+## PDF Storage Locations
+
+- **Running locally (`STORAGE_BACKEND=local`)**: Statement PDFs are read from the local `pdf/` folder.
+- **Running in AWS (`STORAGE_BACKEND=s3`)**: Statement PDFs are read from the S3 bucket specified by the `BUCKET_NAME` environment variable under the `pdfs` prefix (e.g., `s3://<BUCKET_NAME>/pdfs/`).
 
 ## Usage
 
