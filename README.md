@@ -17,7 +17,7 @@ calc-yearly-expense-ai/
 │   │   └── extract_transactions.md # Versioned extraction system prompt
 │   ├── llm/
 │   │   ├── base.py                 # LLMClient protocol
-│   │   └── factory.py              # Instructor client for OpenAI, Claude, and Bedrock
+│   │   └── factory.py              # Instructor client for OpenAI, Claude, Bedrock, and Gemini
 │   ├── classification/
 │   │   ├── criteria.py             # Declarative exclusion & category criteria
 │   │   └── typesafe_classifier.py  # Sync & bounded-concurrency async TypeSafe classifier

@@ -1,10 +1,12 @@
-"""Instructor-backed LLM client factory supporting OpenAI, Claude, and AWS Bedrock."""
+"""Instructor-backed LLM client factory supporting OpenAI, Claude, AWS Bedrock, and Google Gemini."""
 
 from typing import Any, TypeVar
 
 import anthropic
 import boto3
 import instructor
+from google import genai
+from google.genai import types as genai_types
 from openai import OpenAI
 from pydantic import BaseModel
 
@@ -54,6 +56,13 @@ class InstructorLLMClient(LLMClient):
                         self.settings.aws_session_token.get_secret_value()
                     )
                 return instructor.from_bedrock(boto3.client(**client_kwargs))
+            case "gemini":
+                api_key = (
+                    self.settings.gemini_api_key.get_secret_value()
+                    if self.settings.gemini_api_key
+                    else None
+                )
+                return instructor.from_genai(genai.Client(api_key=api_key))
             case _:
                 raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
@@ -66,6 +75,8 @@ class InstructorLLMClient(LLMClient):
                 return self.settings.claude_model_id
             case "bedrock":
                 return self.settings.bedrock_model_id
+            case "gemini":
+                return self.settings.gemini_model_id
             case _:
                 return self.settings.active_model_id
 
@@ -90,6 +101,23 @@ class InstructorLLMClient(LLMClient):
             completion_params["max_completion_tokens"] = max_tokens
         else:
             completion_params["max_tokens"] = max_tokens
+
+        thinking_level = kwargs.get("thinking_level", self.settings.gemini_thinking_level)
+        if self.provider == "gemini" and thinking_level:
+            normalized_level = (
+                thinking_level.strip().upper()
+                if isinstance(thinking_level, str)
+                else thinking_level
+            )
+            if normalized_level:
+                level_enum = (
+                    normalized_level
+                    if isinstance(normalized_level, genai_types.ThinkingLevel)
+                    else genai_types.ThinkingLevel(normalized_level)
+                )
+                completion_params["thinking_config"] = genai_types.ThinkingConfig(
+                    thinking_level=level_enum
+                )
 
         result: T = self.client.chat.completions.create(**completion_params)
         return result

@@ -22,7 +22,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--provider",
-        choices=["openai", "claude", "bedrock"],
+        choices=["openai", "claude", "bedrock", "gemini"],
         help="Override LLM provider (defaults to LLM_PROVIDER in .env).",
     )
     parser.add_argument(
