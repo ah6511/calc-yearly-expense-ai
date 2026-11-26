@@ -32,7 +32,10 @@ class InstructorLLMClient(LLMClient):
                     if self.settings.openai_api_key
                     else None
                 )
-                return instructor.from_openai(OpenAI(api_key=api_key))
+                return instructor.from_openai(
+                    OpenAI(api_key=api_key),
+                    mode=instructor.Mode.JSON_SCHEMA,
+                )
             case "claude":
                 api_key = (
                     self.settings.claude_api_key.get_secret_value()
@@ -97,10 +100,32 @@ class InstructorLLMClient(LLMClient):
             "messages": messages,
         }
 
-        if model.startswith("gpt-5"):
+        reasoning_effort = kwargs.get("reasoning_effort", self.settings.openai_reasoning_effort)
+        normalized_reasoning_effort = (
+            reasoning_effort.strip().lower()
+            if isinstance(reasoning_effort, str)
+            else reasoning_effort
+        )
+
+        use_max_completion_tokens = self.provider == "openai" and (
+            model.startswith(("gpt-5", "o1", "o3", "o4")) or bool(normalized_reasoning_effort)
+        )
+        if use_max_completion_tokens:
             completion_params["max_completion_tokens"] = max_tokens
         else:
             completion_params["max_tokens"] = max_tokens
+
+        if self.provider == "openai" and normalized_reasoning_effort:
+            completion_params["reasoning_effort"] = normalized_reasoning_effort
+
+        claude_effort = kwargs.get("thinking_effort", self.settings.claude_thinking_effort)
+        normalized_claude_effort = (
+            claude_effort.strip().lower() if isinstance(claude_effort, str) else claude_effort
+        )
+        if self.provider == "claude" and normalized_claude_effort:
+            completion_params["thinking"] = {"type": "adaptive"}
+            completion_params["output_config"] = {"effort": normalized_claude_effort}
+            completion_params["tool_choice"] = {"type": "auto"}
 
         thinking_level = kwargs.get("thinking_level", self.settings.gemini_thinking_level)
         if self.provider == "gemini" and thinking_level:

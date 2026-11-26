@@ -3,6 +3,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import instructor
 import pytest
 from google.genai import types as genai_types
 
@@ -114,6 +115,134 @@ def test_instructor_llm_client_gemini_thinking_level(tmp_path: Path) -> None:
         messages=messages,
         max_tokens=settings.max_tokens,
         thinking_config=genai_types.ThinkingConfig(thinking_level="MEDIUM"),
+    )
+
+
+def test_openai_and_claude_effort_settings_normalization(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    defaults = Settings(_env_file=None, base_dir=tmp_path)
+    assert defaults.openai_reasoning_effort is None
+    assert defaults.claude_thinking_effort is None
+
+    monkeypatch.setenv("OPENAI_REASONING_EFFORT", " HIGH ")
+    monkeypatch.setenv("CLAUDE_THINKING_EFFORT", "MEDIUM")
+    s_set = Settings(_env_file=None, base_dir=tmp_path)
+    assert s_set.openai_reasoning_effort == "high"
+    assert s_set.claude_thinking_effort == "medium"
+
+    monkeypatch.setenv("OPENAI_REASONING_EFFORT", "  ")
+    monkeypatch.setenv("CLAUDE_THINKING_EFFORT", "")
+    s_blank = Settings(_env_file=None, base_dir=tmp_path)
+    assert s_blank.openai_reasoning_effort is None
+    assert s_blank.claude_thinking_effort is None
+
+
+def test_instructor_llm_client_openai_reasoning_effort(tmp_path: Path) -> None:
+    settings = Settings(
+        _env_file=None,
+        llm_provider="openai",
+        openai_api_key="sk-test",  # type: ignore[arg-type]
+        openai_model_id="gpt-5-mini",
+        openai_reasoning_effort="medium",
+        base_dir=tmp_path,
+    )
+    expected = Transactions(transactions=[])
+    fake_openai_client = MagicMock()
+    fake_instructor_client = MagicMock()
+    fake_instructor_client.chat.completions.create.return_value = expected
+
+    with (
+        patch("expense_ai.llm.factory.OpenAI", return_value=fake_openai_client),
+        patch(
+            "expense_ai.llm.factory.instructor.from_openai",
+            return_value=fake_instructor_client,
+        ) as mock_from_openai,
+    ):
+        client = create_llm_client(settings=settings, provider="openai")
+        messages = [{"role": "user", "content": "Extract withdrawals."}]
+        client.create_completion(response_model=Transactions, messages=messages)
+
+    mock_from_openai.assert_called_once_with(
+        fake_openai_client,
+        mode=instructor.Mode.JSON_SCHEMA,
+    )
+
+    fake_instructor_client.chat.completions.create.assert_called_once_with(
+        model="gpt-5-mini",
+        max_retries=settings.max_retries,
+        response_model=Transactions,
+        messages=messages,
+        max_completion_tokens=settings.max_tokens,
+        reasoning_effort="medium",
+    )
+
+
+def test_instructor_llm_client_claude_thinking_effort(tmp_path: Path) -> None:
+    settings = Settings(
+        _env_file=None,
+        llm_provider="claude",
+        claude_api_key="sk-ant-test",  # type: ignore[arg-type]
+        claude_thinking_effort="low",
+        base_dir=tmp_path,
+    )
+    expected = Transactions(transactions=[])
+    fake_anthropic_client = MagicMock()
+    fake_instructor_client = MagicMock()
+    fake_instructor_client.chat.completions.create.return_value = expected
+
+    with (
+        patch("expense_ai.llm.factory.anthropic.Anthropic", return_value=fake_anthropic_client),
+        patch(
+            "expense_ai.llm.factory.instructor.from_anthropic",
+            return_value=fake_instructor_client,
+        ),
+    ):
+        client = create_llm_client(settings=settings, provider="claude")
+        messages = [{"role": "user", "content": "Extract withdrawals."}]
+        client.create_completion(response_model=Transactions, messages=messages)
+
+    fake_instructor_client.chat.completions.create.assert_called_once_with(
+        model="claude-sonnet-4-6",
+        max_retries=settings.max_retries,
+        response_model=Transactions,
+        messages=messages,
+        max_tokens=settings.max_tokens,
+        thinking={"type": "adaptive"},
+        output_config={"effort": "low"},
+        tool_choice={"type": "auto"},
+    )
+
+
+def test_instructor_llm_client_omits_effort_when_unset(tmp_path: Path) -> None:
+    settings = Settings(
+        _env_file=None,
+        llm_provider="claude",
+        claude_api_key="sk-ant-test",  # type: ignore[arg-type]
+        base_dir=tmp_path,
+    )
+    expected = Transactions(transactions=[])
+    fake_anthropic_client = MagicMock()
+    fake_instructor_client = MagicMock()
+    fake_instructor_client.chat.completions.create.return_value = expected
+
+    with (
+        patch("expense_ai.llm.factory.anthropic.Anthropic", return_value=fake_anthropic_client),
+        patch(
+            "expense_ai.llm.factory.instructor.from_anthropic",
+            return_value=fake_instructor_client,
+        ),
+    ):
+        client = create_llm_client(settings=settings, provider="claude")
+        messages = [{"role": "user", "content": "Extract withdrawals."}]
+        client.create_completion(response_model=Transactions, messages=messages)
+
+    fake_instructor_client.chat.completions.create.assert_called_once_with(
+        model="claude-sonnet-4-6",
+        max_retries=settings.max_retries,
+        response_model=Transactions,
+        messages=messages,
+        max_tokens=settings.max_tokens,
     )
 
 

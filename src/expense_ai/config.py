@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: SecretStr | None = Field(default=None, validation_alias="OPENAI_API_KEY")
     openai_model_id: str = Field(default="gpt-4o-mini", validation_alias="OPENAI_MODEL_ID")
+    openai_reasoning_effort: Literal["none", "minimal", "low", "medium", "high", "xhigh"] | None = (
+        Field(
+            default=None,
+            validation_alias="OPENAI_REASONING_EFFORT",
+        )
+    )
 
     # Anthropic / Claude
     claude_api_key: SecretStr | None = Field(
@@ -40,6 +46,10 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ANTHROPIC_API_KEY", "CLAUDE_API_KEY"),
     )
     claude_model_id: str = Field(default="claude-sonnet-4-6", validation_alias="CLAUDE_MODEL_ID")
+    claude_thinking_effort: Literal["low", "medium", "high", "max"] | None = Field(
+        default=None,
+        validation_alias="CLAUDE_THINKING_EFFORT",
+    )
 
     # AWS / Bedrock / S3
     aws_region: str = Field(default="us-east-1", validation_alias="AWS_REGION")
@@ -107,6 +117,14 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             stripped = v.strip()
             return stripped.upper() if stripped else None
+        return v
+
+    @field_validator("openai_reasoning_effort", "claude_thinking_effort", mode="before")
+    @classmethod
+    def _normalize_lowercase_effort(cls, v: object) -> object:
+        if isinstance(v, str):
+            stripped = v.strip()
+            return stripped.lower() if stripped else None
         return v
 
     @model_validator(mode="after")
