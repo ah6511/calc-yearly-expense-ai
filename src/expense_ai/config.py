@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AliasChoices, Field, SecretStr, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
 
     # Provider & Model Configuration
-    llm_provider: Literal["openai", "claude", "bedrock"] = Field(
+    llm_provider: Literal["openai", "claude", "bedrock", "gemini"] = Field(
         default="claude",
         validation_alias="LLM_PROVIDER",
     )
@@ -59,6 +59,20 @@ class Settings(BaseSettings):
         validation_alias="BEDROCK_EMBEDDING_MODEL_ID",
     )
 
+    # Google / Gemini
+    gemini_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GEMINI_API_KEY", "GOOGLE_API_KEY"),
+    )
+    gemini_model_id: str = Field(
+        default="gemini-4-neon",
+        validation_alias="GEMINI_MODEL_ID",
+    )
+    gemini_thinking_level: Literal["MINIMAL", "LOW", "MEDIUM", "HIGH", "XHIGH"] | None = Field(
+        default=None,
+        validation_alias="GEMINI_THINKING_LEVEL",
+    )
+
     # TypeSafe AI
     typesafe_api_key: SecretStr | None = Field(default=None, validation_alias="TYPESAFE_API_KEY")
     typesafe_model: str = Field(default="jev-latest", validation_alias="TYPESAFE_DEFAULT_MODEL")
@@ -87,6 +101,14 @@ class Settings(BaseSettings):
         validation_alias="SINGLE_FILE_MODE_PDF_NAME",
     )
 
+    @field_validator("gemini_thinking_level", mode="before")
+    @classmethod
+    def _normalize_gemini_thinking_level(cls, v: object) -> object:
+        if isinstance(v, str):
+            stripped = v.strip()
+            return stripped.upper() if stripped else None
+        return v
+
     @model_validator(mode="after")
     def _resolve_storage_backend(self) -> "Settings":
         if self.storage_backend is None:
@@ -108,6 +130,8 @@ class Settings(BaseSettings):
                 return self.claude_model_id
             case "bedrock":
                 return self.bedrock_model_id
+            case "gemini":
+                return self.gemini_model_id
 
 
 @lru_cache
